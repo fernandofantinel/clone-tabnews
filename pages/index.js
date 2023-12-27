@@ -1,5 +1,14 @@
 function Home() {
-  return <h1>Testando git amend e push</h1>;
+  return (
+    <h1
+      style={{
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      Clone TabNews - Em construção
+    </h1>
+  );
 }
 
 export default Home;
