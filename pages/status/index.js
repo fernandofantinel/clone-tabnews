@@ -27,11 +27,7 @@ function UpdatedAt() {
     updatedAtText = new Date(data.updated_at).toLocaleString("pt-BR");
   }
 
-  return (
-    <>
-      <div>Última atualização: {updatedAtText}</div>
-    </>
-  );
+  return <div>Última atualização: {updatedAtText}</div>;
 }
 
 function DatabaseStatus() {
