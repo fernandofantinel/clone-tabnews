@@ -24,7 +24,7 @@ export class ServiceError extends Error {
       cause,
     });
     this.name = "ServiceError";
-    this.action = "Verifique se o serviço se o serviço está disponível.";
+    this.action = "Verifique se o serviço está disponível.";
     this.statusCode = 503;
   }
 
