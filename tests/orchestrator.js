@@ -6,8 +6,11 @@ import migrator from "models/migrator.js";
 import user from "models/user.js";
 import session from "models/session.js";
 
+const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
+
 async function waitForAllServices() {
   await waitForWebServices();
+  await waitForEmailServer();
 
   async function waitForWebServices() {
     return retry(fetchStatusPage, {
@@ -17,6 +20,21 @@ async function waitForAllServices() {
 
     async function fetchStatusPage() {
       const response = await fetch("http://localhost:3000/api/v1/status");
+
+      if (response.status !== 200) {
+        throw Error();
+      }
+    }
+  }
+
+  async function waitForEmailServer() {
+    return retry(fetchEmailPage, {
+      retries: 100,
+      maxTimeout: 1000,
+    });
+
+    async function fetchEmailPage() {
+      const response = await fetch(emailHttpUrl);
 
       if (response.status !== 200) {
         throw Error();
@@ -46,12 +64,38 @@ async function clearDatabase() {
   await database.query("drop schema public cascade; create schema public;");
 }
 
+async function deleteAllEmails() {
+  await fetch(
+    `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}/messages`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+async function getLastEmail() {
+  const emailListResponse = await fetch(`${emailHttpUrl}/messages`);
+  const emailListBody = await emailListResponse.json();
+  const lastEmailItem = emailListBody.pop();
+
+  const emailTextResponse = await fetch(
+    `${emailHttpUrl}/messages/${lastEmailItem.id}.plain`,
+  );
+  const emailTextBody = await emailTextResponse.text();
+
+  lastEmailItem.text = emailTextBody;
+
+  return lastEmailItem;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
   runPendigMigrations,
   createUser,
   createSession,
+  deleteAllEmails,
+  getLastEmail,
 };
 
 export default orchestrator;
